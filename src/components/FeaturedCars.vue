@@ -13,12 +13,11 @@
 
                     <v-card-text class="card-body">
                         <div class="card-title">{{ car.name }}</div>
-                        <div class="card-subtitle">{{ car.tagline }}</div>
                     </v-card-text>
 
                     <v-card-actions class="card-actions">
                         <div class="price-tag">${{ car.price }} / يوم</div>
-                        <v-btn class="rent-button" @click="openRent(car)">استئجار</v-btn>
+                        <v-btn class="rent-button" @click="openBooking(car)">استئجار</v-btn>
                     </v-card-actions>
                 </v-card>
             </v-col>
@@ -79,55 +78,136 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
 
-const cars = [
-    { id: 1, name: 'BMW M4 Competition', tagline: 'أداء رياضي فائق', price: 120, image: '/cars/1.jpeg' },
-    { id: 2, name: 'Audi RS7', tagline: 'قوة وأناقة بتحكم كامل', price: 150, image: '/cars/3.jpeg' },
-    { id: 3, name: 'Mercedes AMG GT', tagline: 'فخامة وريادة على الطريق', price: 180, image: '/cars/2.jpeg' },
-    { id: 4, name: 'Porsche 911 Carrera', tagline: 'سرعة مميزة وشخصية جريئة', price: 210, image: '/cars/4.jpeg' },
-    { id: 5, name: 'Lamborghini Huracan', tagline: 'تجربة قيادة خارقة', price: 330, image: '/cars/5.jpeg' },
-    { id: 6, name: 'Ferrari Roma', tagline: 'نمط حياة رياضي فاخر', price: 290, image: '/cars/1.jpeg' },
-    { id: 7, name: 'Range Rover Sport', tagline: 'راحة وديناميكية في كل رحلة', price: 170, image: '/cars/4.jpeg' },
-    { id: 8, name: 'Tesla Model S', tagline: 'قيادة كهربائية مستقبلية', price: 160, image: '/cars/2.jpeg' },
-    { id: 9, name: 'Mercedes G-Class', tagline: 'قوة عصرية ورفاهية مطلقة', price: 220, image: '/cars/3.jpeg' },
-    { id: 10, name: 'Audi Q8', tagline: 'رحابة وأناقة للطرق الطويلة', price: 140, image: '/cars/5.jpeg' },
-    { id: 11, name: 'BMW X7', tagline: 'مساحة واسعة وأناقة فاخرة', price: 155, image: '/cars/2.jpeg' },
-    { id: 12, name: 'Maserati Levante', tagline: 'تفرد إيطالي وأسلوب قوي', price: 195, image: '/cars/1.jpeg' }
-]
+import { ref, onMounted, reactive } from 'vue'
+import { supabase } from '../lib/supabase'
 
-const dialog = ref(false)
-const snackbar = ref(false)
-const snackbarMsg = ref('')
-const selectedCar = ref(null)
+import emailjs from '@emailjs/browser'
 
-const formRef = ref(null)
-const form = ref({ firstName: '', lastName: '', email: '', phone: '', startDate: '', days: 1 })
+const cars = ref([])
 
-const rules = {
-    required: v => !!v || 'هذا الحقل مطلوب',
-    email: v => /\S+@\S+\.\S+/.test(v) || 'بريد إلكتروني غير صالح',
-    phone: v => (!!v && v.length >= 7) || 'رقم هاتف غير صالح',
-    days: v => (v && v > 0) || 'المدة يجب أن تكون على الأقل يوم واحد'
-}
+async function getCars() {
+    const { data, error } = await supabase.from('cars').select('*')
+    console.log('Supabase cars fetch result:', { data, error })
 
-function openRent(car) {
-    selectedCar.value = car
-    form.value = { firstName: '', lastName: '', email: '', phone: '', startDate: '', days: 1 }
-    dialog.value = true
-}
-
-function submitRental() {
-    if (formRef.value && typeof formRef.value.validate === 'function') {
-        const valid = formRef.value.validate()
-        if (!valid) return
+    if (error) {
+        console.error('Supabase fetch error:', error)
+        return
     }
 
-    console.log('Rental request', { car: selectedCar.value, ...form.value })
-    snackbarMsg.value = 'تم إرسال طلب الحجز بنجاح'
-    snackbar.value = true
-    dialog.value = false
+    if (!data || data.length === 0) {
+        console.warn('Supabase returned an empty array from cars table.')
+    }
+
+    cars.value = data || []
 }
+
+onMounted(() => {
+    getCars()
+})
+
+
+// 1. UI Control States
+const dialog = ref(false)
+const formRef = ref(null)      // Ties directly to your <v-form ref="formRef">
+const selectedCar = ref(null)  // Keeps track of which car the user is booking
+
+// 2. Form Reactive Object (matches your v-models exactly)
+const form = reactive({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    startDate: '',
+    days: 1
+})
+
+// 3. Arabic Validation Rules (matches your :rules)
+const rules = {
+    required: v => !!v || 'هذا الحقل مطلوب',
+    email: v => /.+@.+\..+/.test(v) || 'البريد الإلكتروني غير صحيح',
+    phone: v => /^[0-9+\s-]{8,15}$/.test(v) || 'رقم الهاتف غير صحيح',
+    days: v => (v && v > 0) || 'يجب أن يكون عدد الأيام 1 أو أكثر'
+}
+
+// 4. Form Reset Helper
+const resetForm = () => {
+    if (formRef.value) formRef.value.reset()
+    form.firstName = ''
+    form.lastName = ''
+    form.email = ''
+    form.phone = ''
+    form.startDate = ''
+    form.days = 1
+}
+
+// 5. Submit Function (tied to your @click="submitRental")
+
+const submitRental = async () => {
+    const { valid } = await formRef.value.validate()
+    if (!valid) return
+
+    try {
+        // REMOVE car_name from this object
+        const bookingPayload = {
+            car_id: selectedCar.value?.id, // This links perfectly to your cars table ID
+            first_name: form.firstName,
+            last_name: form.lastName,
+            email: form.email,
+            phone: form.phone,
+            start_date: form.startDate,
+            days: parseInt(form.days)
+        }
+
+
+
+        // Insert the row into your 'bookings' table
+        const { data, error } = await supabase
+            .from('bookings')
+            .insert([ bookingPayload ])
+
+        if (error) throw error
+
+        // Step B: send confirmation email if possible, but don't fail the booking if email fails
+        const emailParams = {
+            title: "🚗 NEW EL VARIS AUTO",
+            name: form.firstName + " " + form.lastName,
+            first_name: form.firstName,
+            last_name: form.lastName,
+            phone: form.phone,
+            start_date: form.startDate,
+            email: form.email,
+        }
+
+        try {
+            await emailjs.send(
+                'service_s929lmw',   // Replace with your EmailJS Service ID
+                'template_kiqz6ki',  // Replace with your EmailJS Template ID
+                emailParams,
+                'Jg4C3ybZVkofiomVn'    // Replace with your EmailJS Public Key
+            )
+        } catch (emailError) {
+            console.error('EmailJS send failed:', emailError)
+            alert('تم حفظ الطلب، ولكن لم يتم إرسال البريد الإلكتروني للتأكيد.')
+        }
+
+        alert('تم إرسال طلب الحجز بنجاح!')
+        dialog.value = false
+        resetForm()
+
+    } catch (error) {
+        console.error('Error saving booking:', error)
+        alert('حدث خطأ أثناء إرسال الطلب: ' + (error.message || error))
+    }
+}
+
+
+const openBooking = (car) => {
+    selectedCar.value = car // Sets the car metadata (id, name) for the form title and payload
+    dialog.value = true     // Opens the dialog
+}
+
+
 </script>
 
 <style scoped>
