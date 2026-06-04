@@ -163,7 +163,7 @@
     }
 
     .scroll-indicator {
-        margin-top: 18px;
+        margin-top: 70px;
     }
 
     .scroll-label {
