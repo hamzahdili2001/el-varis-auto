@@ -22,6 +22,11 @@
                     0664064306
                 </v-btn>
             </div>
+
+            <a class="scroll-indicator" href="#featured-cars" aria-label="Scroll to featured cars">
+                <span class="scroll-label">استعرض السيارات</span><br>
+                <v-icon class="scroll-icon">mdi-chevron-double-down</v-icon>
+            </a>
         </v-container>
     </div>
 </template>
@@ -63,6 +68,50 @@
     flex-wrap: wrap;
     gap: 16px;
     justify-content: center;
+}
+
+.scroll-indicator {
+    display: block;
+    width: fit-content;
+    margin-left: auto;
+    margin-right: auto;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    margin-top: 70px;
+    color: rgba(255, 255, 255, 0.92);
+    text-decoration: none;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+    animation: floatDown 1.8s ease-in-out infinite;
+}
+
+.scroll-indicator:hover {
+    transform: translateY(-2px);
+    opacity: 1;
+}
+
+.scroll-label {
+    font-size: 0.95rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.88);
+}
+
+.scroll-icon {
+    color: #ffd54f;
+    font-size: 1.6rem;
+}
+
+@keyframes floatDown {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(6px);
+    }
 }
 
 .whatsapp-icon {
@@ -111,6 +160,15 @@
         width: 100%;
         flex-direction: column;
         gap: 12px;
+    }
+
+    .scroll-indicator {
+        margin-top: 18px;
+    }
+
+    .scroll-label {
+        font-size: 0.85rem;
+        letter-spacing: 0.08em;
     }
 
     .whatsapp-btn {

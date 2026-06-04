@@ -1,6 +1,6 @@
 <!-- components/FeaturedCars.vue -->
 <template>
-    <v-container class="featured-container mt-10" fluid>
+    <v-container id="featured-cars" class="featured-container mt-10" fluid>
         <div class="section-heading">
             <h2 class="featured-title text-h4 mb-2 font-weight-bold">سيارات مميزة</h2>
             <p class="section-description">اكتشف أفضل السيارات المتاحة الآن، اختر ما يناسب رحلتك بأسلوب فاخر.</p>
@@ -199,10 +199,10 @@ const submitRental = async () => {
 
         try {
             await emailjs.send(
-                'service_s929lmw',   // Replace with your EmailJS Service ID
-                'template_kiqz6ki',  // Replace with your EmailJS Template ID
+                'service_s929lmw',
+                'template_kiqz6ki',
                 emailParams,
-                'Jg4C3ybZVkofiomVn'    // Replace with your EmailJS Public Key
+                'Jg4C3ybZVkofiomVn'
             )
         } catch (emailError) {
             console.error('EmailJS send failed:', emailError)
@@ -223,8 +223,8 @@ const submitRental = async () => {
 
 
 const openBooking = (car) => {
-    selectedCar.value = car // Sets the car metadata (id, name) for the form title and payload
-    dialog.value = true     // Opens the dialog
+    selectedCar.value = car
+    dialog.value = true
 }
 
 
