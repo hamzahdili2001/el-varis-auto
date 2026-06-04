@@ -4,7 +4,7 @@
     <div class="hero d-flex align-center justify-center text-center">
         <v-container>
             <h1 class="hero-title display-2 font-weight-bold mb-4">
-                احجز سيارة أحلامك اليوم
+                <span class="hero-brand">El Varis Auto</span>
             </h1>
             <p class="text-h5 mb-6">
                 اختر من بين مجموعة واسعة من السيارات الفاخرة والرياضية لمغامرتك المقبلة
@@ -46,6 +46,18 @@
     line-height: 1.05;
 }
 
+.hero-brand {
+    display: block;
+    font-family: 'Brush Script MT', 'Lucida Handwriting', cursive;
+    font-size: 5rem;
+    letter-spacing: 0.12em;
+    color: #ffd54f;
+    text-shadow: 0 6px 28px rgba(0, 0, 0, 0.45);
+    margin-bottom: 0.5rem;
+}
+
+
+
 .hero-actions {
     display: inline-flex;
     flex-wrap: wrap;
@@ -79,6 +91,14 @@
     .hero-title {
         font-size: 2.75rem;
         line-height: 1.1;
+    }
+
+    .hero-brand {
+        font-size: 2.4rem;
+    }
+
+    .hero-subtitle {
+        font-size: 1rem;
     }
 
     .hero p {

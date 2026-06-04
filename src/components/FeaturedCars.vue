@@ -13,11 +13,25 @@
 
                     <v-card-text class="card-body">
                         <div class="card-title">{{ car.name }}</div>
+
+                        <div class="card-tags">
+                            <v-chip size="small" variant="outlined" class="tag-chip">
+                                {{ car.transmission === 'automatic' ? '🔄 automatique ' : '⚙️ manuel' }}
+                            </v-chip>
+                            <v-chip size="small" variant="outlined" class="tag-chip">
+                                {{ car.fuel_type === 'diesel' ? '⛽ diesel' : '⛽ essence' }}
+                            </v-chip>
+                            <v-chip size="small" :variant="car.is_available ? 'tonal' : 'outlined'"
+                                :color="car.is_available ? 'success' : 'error'" class="tag-chip">
+                                {{ car.is_available ? '✓ متاح' : '✗ غير متاح' }}
+                            </v-chip>
+                        </div>
                     </v-card-text>
 
                     <v-card-actions class="card-actions">
-                        <div class="price-tag">${{ car.price }} / يوم</div>
-                        <v-btn class="rent-button" @click="openBooking(car)">استئجار</v-btn>
+                        <div class="price-tag">{{ car.price }} Dh / يوم</div>
+                        <v-btn class="rent-button" @click="openBooking(car)"
+                            :disabled="!car.is_available">استئجار</v-btn>
                     </v-card-actions>
                 </v-card>
             </v-col>
@@ -109,6 +123,8 @@ onMounted(() => {
 
 // 1. UI Control States
 const dialog = ref(false)
+const snackbar = ref(false)
+const snackbarMsg = ref('')
 const formRef = ref(null)      // Ties directly to your <v-form ref="formRef">
 const selectedCar = ref(null)  // Keeps track of which car the user is booking
 
@@ -179,6 +195,8 @@ const submitRental = async () => {
             email: form.email,
         }
 
+        let bookingMessage = 'تم إرسال طلب الحجز بنجاح!'
+
         try {
             await emailjs.send(
                 'service_s929lmw',   // Replace with your EmailJS Service ID
@@ -188,16 +206,18 @@ const submitRental = async () => {
             )
         } catch (emailError) {
             console.error('EmailJS send failed:', emailError)
-            alert('تم حفظ الطلب، ولكن لم يتم إرسال البريد الإلكتروني للتأكيد.')
+            bookingMessage = 'تم حفظ الطلب، ولكن لم يتم إرسال البريد الإلكتروني للتأكيد.'
         }
 
-        alert('تم إرسال طلب الحجز بنجاح!')
+        snackbarMsg.value = bookingMessage
+        snackbar.value = true
         dialog.value = false
         resetForm()
 
     } catch (error) {
         console.error('Error saving booking:', error)
-        alert('حدث خطأ أثناء إرسال الطلب: ' + (error.message || error))
+        snackbarMsg.value = 'حدث خطأ أثناء إرسال الطلب: ' + (error.message || error)
+        snackbar.value = true
     }
 }
 
@@ -261,6 +281,17 @@ const openBooking = (car) => {
     font-weight: 700;
     margin-bottom: 8px;
     color: #0f172a;
+}
+
+.card-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.tag-chip {
+    font-size: 0.85rem;
 }
 
 .card-subtitle {

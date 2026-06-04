@@ -12,13 +12,16 @@
         <v-row justify="center" align="center" class="footer-row">
 
           <v-col cols="12" md="4" class="text-center social-col">
-            <v-btn icon class="social-btn" href="https://wa.me/966501234567" target="_blank" rel="noopener">
+            <v-btn icon class="social-btn" href="https://wa.me/212664162516" target="_blank" rel="noopener">
               <v-icon>mdi-whatsapp</v-icon>
             </v-btn>
-            <v-btn icon class="social-btn" href="#" target="_blank" rel="noopener">
+            <v-btn icon class="social-btn" href="https://www.facebook.com/share/18N2VYSuMv/?mibextid=wwXIfr"
+              target="_blank" rel="noopener">
               <v-icon>mdi-facebook</v-icon>
             </v-btn>
-            <v-btn icon class="social-btn" href="#" target="_blank" rel="noopener">
+            <v-btn icon class="social-btn"
+              href="https://www.instagram.com/el.varis.auto?utm_source=qr&igsh=NmFwMWFzYW1tdnRh" target="_blank"
+              rel="noopener">
               <v-icon>mdi-instagram</v-icon>
             </v-btn>
           </v-col>
